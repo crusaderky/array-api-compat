@@ -801,6 +801,54 @@ def size(x):
         return None
     return math.prod(x.shape)
 
+
+def is_writeable_array(x):
+    """
+    Return False if x.__setitem__ is expected to raise; True otherwise
+    """
+    if is_numpy_array(x):
+        return x.flags.writeable
+    if is_jax_array(x) or is_pydata_sparse_array(x):
+        return False
+    return True
+
+
+def where(condition, x=None, y=None, /, copy: bool | None = True):
+    """Return elements from x when condition is True and from y when
+    it is False.
+
+    This is a wrapper around xp.where that adds the copy parameter:
+
+    None
+        x *may* be modified in place if it is possible and beneficial
+        for performance. You should not use x after calling this function.
+    True
+        Ensure that the inputs are not modified.
+        This is the default, in line with np.where.
+    False
+        Raise ValueError if a copy cannot be avoided.
+    """
+    if x is None and y is None:
+        xp = array_namespace(condition, use_compat=False)
+        return xp.where(condition)
+
+    if copy is False:
+        if not is_writeable_array(x):
+            raise ValueError("Cannot modify parameter in place")
+    elif copy is None:
+        copy = not is_writeable_array(x)
+    elif copy is not True:
+        raise ValueError(f"Invalid value for copy: {copy!r}")
+
+    xp = array_namespace(condition, x, y, use_compat=False)
+    if copy:
+        return xp.where(condition, x, y)
+    else:
+        condition, x, y = xp.broadcast_arrays(condition, x, y)
+        x[condition] = y[condition]
+        return x
+
+
 __all__ = [
     "array_namespace",
     "device",
@@ -821,8 +869,10 @@ __all__ = [
     "is_ndonnx_namespace",
     "is_pydata_sparse_array",
     "is_pydata_sparse_namespace",
+    "is_writeable_array",
     "size",
     "to_device",
+    "where",
 ]
 
 _all_ignore = ['sys', 'math', 'inspect', 'warnings']

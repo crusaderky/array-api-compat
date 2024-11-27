@@ -36,6 +36,7 @@ instead, which would be wrapped.
 .. autofunction:: device
 .. autofunction:: to_device
 .. autofunction:: size
+.. autofunction:: where
 
 Inspection Helpers
 ------------------
@@ -51,6 +52,7 @@ yet.
 .. autofunction:: is_jax_array
 .. autofunction:: is_pydata_sparse_array
 .. autofunction:: is_ndonnx_array
+.. autofunction:: is_writeable_array
 .. autofunction:: is_numpy_namespace
 .. autofunction:: is_cupy_namespace
 .. autofunction:: is_torch_namespace
